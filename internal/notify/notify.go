@@ -10,7 +10,7 @@ import (
 )
 
 type Notifier interface {
-	Notify(ctx context.Context, title, subtitle, message string) error
+	Notify(ctx context.Context, title, subtitle, message, link string) error
 }
 
 type notifier struct {
@@ -21,16 +21,38 @@ func NewNotifier(logger *slog.Logger) Notifier {
 	return &notifier{logger: logger}
 }
 
-func (n *notifier) Notify(ctx context.Context, title, subtitle, message string) error {
+func (n *notifier) Notify(ctx context.Context, title, subtitle, message, link string) error {
 	title = truncateForNotification(title, 128)
 	subtitle = truncateForNotification(subtitle, 256)
 	message = truncateForNotification(message, 512)
 
-	script := fmt.Sprintf(`display notification %q with title %q`, message, title)
+	dialogText := message
 	if subtitle != "" {
-		script = fmt.Sprintf(`display notification %q with title %q subtitle %q`, message, title, subtitle)
+		if dialogText != "" {
+			dialogText = fmt.Sprintf("%s\n\n%s", subtitle, message)
+		} else {
+			dialogText = subtitle
+		}
+	}
+	if dialogText == "" {
+		dialogText = title
 	}
 
+	buttons := `{"Dismiss"}`
+	defaultButton := `"Dismiss"`
+	openButton := ""
+	if strings.TrimSpace(link) != "" {
+		buttons = `{"Open PR","Dismiss"}`
+		defaultButton = `"Open PR"`
+		openButton = "Open PR"
+	}
+
+	script := fmt.Sprintf(`set dialogResult to display dialog %q with title %q buttons %s default button %s giving up after 20`, dialogText, title, buttons, defaultButton)
+	if openButton != "" {
+		script += fmt.Sprintf(`\nif gave up of dialogResult is false and button returned of dialogResult is %q then
+	do shell script "open " & quoted form of %q
+end if`, openButton, link)
+	}
 	cmd := exec.CommandContext(ctx, "osascript", "-e", script)
 	if err := cmd.Run(); err != nil {
 		if n.logger != nil {

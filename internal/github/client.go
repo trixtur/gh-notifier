@@ -81,7 +81,11 @@ func (c *Client) CurrentUserLogin(ctx context.Context) (string, error) {
 }
 
 func (c *Client) SearchAssignedPullRequests(ctx context.Context, query string, limit int) ([]PullRequestSummary, error) {
-	args := []string{"search", "prs", "--search", query, "--sort", "updated", "--order", "desc", "--json", "number,title,url,updatedAt"}
+	args := []string{"search", "prs"}
+	if trimmed := strings.TrimSpace(query); trimmed != "" {
+		args = append(args, strings.Fields(trimmed)...)
+	}
+	args = append(args, "--sort", "updated", "--order", "desc", "--json", "number,title,url,updatedAt")
 	if limit > 0 {
 		args = append(args, "--limit", strconv.Itoa(limit))
 	}
@@ -97,7 +101,7 @@ func (c *Client) SearchAssignedPullRequests(ctx context.Context, query string, l
 }
 
 func (c *Client) ListAuthoredPullRequests(ctx context.Context, author string, limit int) ([]PullRequestSummary, error) {
-	args := []string{"pr", "list", "--author", author, "--state", "open", "--json", "number,title,url,updatedAt"}
+	args := []string{"search", "prs", "is:open", "is:pr", fmt.Sprintf("author:%s", author), "--sort", "updated", "--order", "desc", "--json", "number,title,url,updatedAt"}
 	if limit > 0 {
 		args = append(args, "--limit", strconv.Itoa(limit))
 	}

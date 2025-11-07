@@ -120,7 +120,7 @@ func (m *Monitor) pollAssigned(ctx context.Context) error {
 		}
 
 		message := fmt.Sprintf("#%d · +%d −%d · %d files", details.Number, details.Additions, details.Deletions, details.ChangedFiles)
-		if err := m.notifier.Notify(ctx, details.Title, repo, message); err != nil {
+		if err := m.notifier.Notify(ctx, details.Title, repo, message, details.URL); err != nil {
 			m.logger.Warn("notification failed", slog.String("repo", repo), slog.Int("number", item.Number), slog.String("error", err.Error()))
 		}
 
@@ -163,7 +163,7 @@ func (m *Monitor) pollAuthored(ctx context.Context) error {
 				body := summarizeText(cmt.Body, 220)
 				message := fmt.Sprintf("%s: %s", cmt.User.Login, body)
 				subtitle := fmt.Sprintf("%s · #%d", repo, item.Number)
-				if err := m.notifier.Notify(ctx, item.Title, subtitle, message); err != nil {
+				if err := m.notifier.Notify(ctx, item.Title, subtitle, message, cmt.HTMLURL); err != nil {
 					m.logger.Warn("notification failed", slog.String("repo", repo), slog.Int("number", item.Number), slog.String("error", err.Error()))
 				}
 			}
@@ -190,7 +190,7 @@ func (m *Monitor) pollAuthored(ctx context.Context) error {
 				}
 				message := fmt.Sprintf("%s: %s", rvw.User.Login, body)
 				subtitle := fmt.Sprintf("%s · #%d", repo, item.Number)
-				if err := m.notifier.Notify(ctx, item.Title, subtitle, message); err != nil {
+				if err := m.notifier.Notify(ctx, item.Title, subtitle, message, rvw.HTMLURL); err != nil {
 					m.logger.Warn("notification failed", slog.String("repo", repo), slog.Int("number", item.Number), slog.String("error", err.Error()))
 				}
 			}

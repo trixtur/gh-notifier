@@ -49,17 +49,19 @@ type notification struct {
 	title    string
 	subtitle string
 	message  string
+	link     string
 }
 
 type fakeNotifier struct {
 	notifications []notification
 }
 
-func (f *fakeNotifier) Notify(ctx context.Context, title, subtitle, message string) error {
+func (f *fakeNotifier) Notify(ctx context.Context, title, subtitle, message, link string) error {
 	f.notifications = append(f.notifications, notification{
 		title:    title,
 		subtitle: subtitle,
 		message:  message,
+		link:     link,
 	})
 	return nil
 }
