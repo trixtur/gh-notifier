@@ -27,26 +27,15 @@ The first poll seeds the local cache without sending notifications so you are no
 
 ## Launch agent (optional)
 
-To keep the notifier running, consider adding a `launchd` plist that runs `go run` or the compiled binary at login. Example snippet:
+Run the helper script to build the binary, install the `launchd` plist, and start the agent:
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key><string>com.example.gh-review-notifier</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/usr/local/bin/gh-review-notifier</string>
-        <string>-interval</string><string>2m</string>
-    </array>
-    <key>RunAtLoad</key><true/>
-    <key>KeepAlive</key><true/>
-</dict>
-</plist>
+```sh
+./scripts/install-launch-agent.sh
 ```
 
-Adjust the binary path and options to match your setup, then load with `launchctl load ~/Library/LaunchAgents/com.example.gh-review-notifier.plist`.
+The agent is installed as `com.trixtur.gh-review-notifier`, runs at login, and restarts automatically if it crashes. Logs land in `~/Library/Logs/gh-review-notifier.log`.
+
+To adjust the poll interval or flags, edit `~/Library/LaunchAgents/com.trixtur.gh-review-notifier.plist` and run `launchctl kickstart -k gui/$UID/com.trixtur.gh-review-notifier`.
 
 ## Cache
 
